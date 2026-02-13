@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: expense_tracker_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: expense_tracker
+      MYSQL_USER: expenseuser
+      MYSQL_PASSWORD: expensepass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - expense_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Flask Application
+  web:
+    build: .
+    container_name: expense_tracker_app
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      MYSQL_HOST: db
+      MYSQL_USER: expenseuser
+      MYSQL_PASSWORD: expensepass
+      MYSQL_DB: expense_tracker
+      FLASK_ENV: production
+      SECRET_KEY: your-secret-key-change-in-production
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - expense_network
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        sleep 10 &&
+        python database.py &&
+        gunicorn --bind 0.0.0.0:5000 --workers 2 --timeout 120 app:app
+      "
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  expense_network:
+    driver: bridge

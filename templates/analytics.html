@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Spending Analytics</h2>
+</div>
+
+<div class="analytics-grid">
+    <!-- Summary Cards -->
+    <div class="analytics-card">
+        <h3>Total Spending</h3>
+        <p class="analytics-value">₹{{ "%.2f"|format(analytics.total_spending) }}</p>
+    </div>
+
+    <div class="analytics-card">
+        <h3>Total Expenses</h3>
+        <p class="analytics-value">{{ analytics.expense_count }}</p>
+    </div>
+
+    <div class="analytics-card">
+        <h3>Average Expense</h3>
+        <p class="analytics-value">₹{{ "%.2f"|format(analytics.average_expense) }}</p>
+    </div>
+
+    <div class="analytics-card">
+        <h3>Categories</h3>
+        <p class="analytics-value">{{ analytics.category_totals|length }}</p>
+    </div>
+</div>
+
+<!-- Category Breakdown -->
+<div class="analytics-section">
+    <h3>Spending by Category</h3>
+    {% if analytics.category_totals %}
+    <div class="category-breakdown">
+        {% for category, amount in analytics.category_totals.items()|sort(attribute='1', reverse=True) %}
+        <div class="category-item">
+            <div class="category-info">
+                <span class="category-name">{{ category }}</span>
+                <span class="category-amount">₹{{ "%.2f"|format(amount) }}</span>
+            </div>
+            <div class="category-bar">
+                <div class="category-fill" style="width: {{ (amount / analytics.total_spending * 100)|round(2) }}%"></div>
+            </div>
+            <div class="category-percentage">
+                {{ (amount / analytics.total_spending * 100)|round(1) }}%
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="no-data">No category data available</p>
+    {% endif %}
+</div>
+
+<!-- Monthly Breakdown -->
+<div class="analytics-section">
+    <h3>Monthly Spending Trend</h3>
+    {% if analytics.monthly_totals %}
+    <div class="monthly-breakdown">
+        {% for month, amount in analytics.monthly_totals.items()|sort %}
+        <div class="monthly-item">
+            <span class="month-label">{{ month }}</span>
+            <div class="monthly-bar-container">
+                <div class="monthly-bar" style="width: {{ (amount / analytics.total_spending * 100)|round(2) }}%"></div>
+            </div>
+            <span class="month-amount">₹{{ "%.2f"|format(amount) }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="no-data">No monthly data available</p>
+    {% endif %}
+</div>
+
+<!-- Chart Placeholder -->
+<div class="analytics-section">
+    <h3>Visual Charts</h3>
+    <div id="charts-container">
+        <canvas id="categoryChart"></canvas>
+    </div>
+    <p class="chart-note">📊 Interactive charts will be added in Phase 2</p>
+</div>
+
+<div class="analytics-actions">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">← Back to Expenses</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Analytics data for future chart implementation
+    const analyticsData = {{ analytics|tojson|safe }};
+    console.log('Analytics Data:', analyticsData);
+</script>
+{% endblock %}
