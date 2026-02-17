@@ -242,22 +242,17 @@ def internal_error(error):
     """Handle 500 errors"""
     return render_template('500.html'), 500
 
+# Initialize database when app starts
+# Initialize database when app starts
+with app.app_context():
+    try:
+        from database_sqlite import init_database
+        init_database()
+        print("Database initialized successfully!")
+    except Exception as e:
+        print(f"Database init error: {e}")
+
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
-    # Initialize database on first run
-    try:
-        print("Checking database connection...")
-        init_database()
-        print("Database initialized successfully!")
-    except Exception as e:
-        print(f"Warning: Could not initialize database: {e}")
-        print("Make sure MySQL is running and credentials are correct in .env file")
-    
-    # Run the application
-    app.run(
-        host='0.0.0.0',
-        port=app.config['PORT'],
-        debug=app.config['DEBUG']
-    )
