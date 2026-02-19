@@ -295,18 +295,16 @@ def internal_error(error):
     """Handle 500 errors"""
     return render_template('500.html'), 500
 
+# Initialize database when app starts (runs in production too!)
+with app.app_context():
+    try:
+        init_auth_database()
+        print("✅ Authentication database initialized!")
+    except Exception as e:
+        print(f"❌ Database init error: {e}")
+
 if __name__ == '__main__':
     print("🚀 Starting Expense Tracker...")
-    
-    # Initialize database
-    with app.app_context():
-        try:
-            init_auth_database()
-            print("✅ Database initialized successfully!")
-        except Exception as e:
-            print(f"❌ Database init error: {e}")
-    
-    # Start server
     port = int(os.environ.get('PORT', 5000))
     print(f"🌐 Server running on http://localhost:{port}")
     print("📝 Press Ctrl+C to stop")
